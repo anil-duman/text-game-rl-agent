@@ -5,6 +5,13 @@ sys.path.append(os.path.dirname(os.path.abspath(__file__)))
 import argparse
 from environment.grid_world import TreasureHuntEnv
 from agent.llm_agent import LLMAgent
+try:
+    import pygame
+    from visualization.game_visualizer import GameVisualizer
+    PYGAME_AVAILABLE = True
+except ImportError:
+    PYGAME_AVAILABLE = False
+    print("⚠️  Pygame not installed. Install with: pip install pygame")
 
 
 def play_game(agent, env, num_episodes=5, render=True):
@@ -154,6 +161,10 @@ def main():
                         help='Number of episodes to play')
     parser.add_argument('--interactive', action='store_true',
                         help='Interactive mode (you control the agent)')
+    parser.add_argument('--visual', action='store_true',
+                        help='Visual mode with Pygame')
+    parser.add_argument('--text', action='store_true',
+                        help='Force text mode')
     parser.add_argument('--grid-size', type=int, default=5,
                         help='Size of the grid')
     parser.add_argument('--no-render', action='store_true',
@@ -173,13 +184,46 @@ def main():
     if args.checkpoint:
         print(f"Loading checkpoint from {args.checkpoint}")
         agent.load(args.checkpoint)
-    
-    # Run appropriate mode
-    if args.interactive:
-        interactive_mode(agent, env)
-    else:
-        play_game(agent, env, num_episodes=args.episodes, render=not args.no_render)
 
+        # Run appropriate mode
+
+        if args.text:
+            play_game(agent, env, num_episodes=args.episodes, render=not args.no_render)
+        elif args.interactive:
+            interactive_mode(agent, env)
+        else:
+
+            if PYGAME_AVAILABLE and not args.no_render:
+                play_visual(agent, env, args.checkpoint)
+            else:
+                play_game(agent, env, num_episodes=args.episodes, render=not args.no_render)
+
+
+def play_visual(agent, env, checkpoint_path=None):
+    """
+    Visual game mode with Pygame
+    """
+    if not PYGAME_AVAILABLE:
+        print("❌ Pygame is not installed! To install:")
+        print("   pip install pygame")
+        return
+
+    print("\n" + "=" * 60)
+    print("🎮 Visual Game Mode - Pygame")
+    print("=" * 60)
+    print("\nControls:")
+    print("  ⬆️ ⬇️ ⬅️ ➡️  : Move manually")
+    print("  SPACE    : AI makes one move")
+    print("  A        : Auto-play mode (AI continuous)")
+    print("  R        : Reset game")
+    print("  ESC      : Quit")
+    print("\n" + "=" * 60)
+
+    # Create Visualizer
+    visualizer = GameVisualizer(env, agent, cell_size=80)
+
+    # Start the Game
+    visualizer.run(fps=5, auto_play=False)
 
 if __name__ == "__main__":
     main()

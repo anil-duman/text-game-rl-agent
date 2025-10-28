@@ -1,16 +1,10 @@
-# Core dependencies
+pygame
 torch>=2.0.0
 transformers>=4.30.0
 numpy>=1.24.0
 gymnasium>=0.29.0
-
-# Training and utilities
 tqdm>=4.65.0
 tensorboard>=2.13.0
-
-# Optional: Advanced RL
 stable-baselines3>=2.0.0
-
-# Development
 pytest>=7.4.0
 black>=23.3.0
